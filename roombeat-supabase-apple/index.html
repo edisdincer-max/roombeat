@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roombeat - Kadikoy</title>
+<meta name="description" content="Roombeat: Erasmus-friendly rooms & community in Kadikoy with secure deposits.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="theme-color" content="#E9603C">
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{ --bg:#F5F2EF; --ink:#1A1A1A; --muted:#5A5A5A; --accent:#E9603C; --line:#D9D6D2; --white:#FFF; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+.top{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:2px solid var(--ink)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+.badge{width:40px;height:40px;border-radius:10px;background:#0F0F0F;color:#FFD447;display:grid;place-items:center;border:2px solid var(--ink)}
+.right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-block;padding:10px 14px;border:2px solid var(--ink);border-radius:12px;background:#fff;font-weight:900;text-transform:uppercase;letter-spacing:.5px;cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff;border-color:#000}
+.globe{display:flex;gap:8px;align-items:center;border:2px solid var(--ink);border-radius:12px;padding:6px 10px;background:#fff;font-weight:900}
+.globe select{border:none;background:transparent;font:inherit}
+section{padding:36px 0;border-bottom:1px solid var(--line)}
+h1{font-size:clamp(30px,6vw,60px);line-height:1;margin:8px 0 6px;text-transform:uppercase}
+h2{font-size:clamp(20px,3vw,34px);margin:0 0 10px;text-transform:uppercase}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:2px solid var(--ink);background:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:900px){.grid{grid-template-columns:1fr 1fr}} @media (max-width:640px){.grid{grid-template-columns:1fr}}
+.card{border:2px solid var(--ink);border-radius:14px;background:#fff;padding:16px;box-shadow:6px 6px 0 rgba(0,0,0,.08)}
+.muted{color:var(--muted)}
+.route{display:none}.route.active{display:block}
+input,textarea,select{width:100%;padding:10px;border:2px solid var(--ink);border-radius:12px;font:inherit;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media (max-width:680px){.row{grid-template-columns:1fr}}
+/* FAB */
+#audioBtn{position:fixed;right:16px;bottom:16px;z-index:60}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:80}
+.modal .box{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:16px;max-width:560px;width:92vw;box-shadow:6px 6px 0 rgba(0,0,0,.2)}
+.modal .row{grid-template-columns:1fr}
+.oauth{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.oauth .btn{display:flex;align-items:center;gap:8px;justify-content:center}
+.oauth .icon{width:18px;height:18px;display:inline-block}
+.icon-apple{background:#000;border-radius:4px}
+.icon-google{background:linear-gradient(45deg,#ea4335,#fbbc05,#34a853,#4285f4);border-radius:4px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap nav">
+    <div class="brand"><div class="badge">RB</div><span>ROOMBEAT</span></div>
+    <div class="right">
+      <div class="globe">
+        <span>🌐</span>
+        <select id="lang">
+          <option value="en">EN</option><option value="tr">TR</option>
+          <option value="de">DE</option><option value="it">IT</option><option value="fr">FR</option>
+          <option value="es">ES</option><option value="pt">PT</option><option value="nl">NL</option>
+          <option value="pl">PL</option><option value="ro">RO</option>
+        </select>
+      </div>
+      <a class="btn" href="#/">Home</a>
+      <a class="btn" href="#/profiles">Profiles</a>
+      <a class="btn" href="#/me">My Profile</a>
+      <a class="btn" href="#/roadmap">Roadmap</a>
+      <button id="authBtn" class="btn">Auth</button>
+      <button id="settingsBtn" class="btn">Settings</button>
+      <a class="btn primary" id="waCta" href="https://wa.me/34655274054" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="route-home" class="route active">
+    <section class="wrap" style="padding-top:28px">
+      <h1>YOUR HOME IN THE HEART OF KADIKOY</h1>
+      <p class="muted">Modern, furnished rooms for Erasmus students and internationals - bills-included options, ikamet contracts, and a friendly community.</p>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+        <a class="btn primary" id="waExplore" href="https://wa.me/34655274054" target="_blank" rel="noopener">Explore rooms on WhatsApp</a>
+        <a class="btn" href="#/profiles">Meet people</a>
+        <a class="btn" href="#/roadmap">Roadmap</a>
+      </div>
+    </section>
+  </div>
+
+  <div id="route-profiles" class="route">
+    <section class="wrap" style="padding-top:28px" id="profilesSection"></section>
+  </div>
+
+  <div id="route-me" class="route">
+    <section class="wrap" style="padding-top:28px">
+      <h1>My profile</h1>
+      <p class="muted">Save to appear in the directory. If Supabase is configured, this writes to the profiles table.</p>
+    </section>
+    <section class="wrap">
+      <form id="meForm" class="card" onsubmit="return false;">
+        <div class="row">
+          <div><label><strong>Full name</strong><br><input id="me_name" required></label></div>
+          <div><label><strong>WhatsApp (private)</strong><br><input id="me_whatsapp" placeholder="+90 ..."></label></div>
+        </div>
+        <div class="row">
+          <div><label><strong>Nationality</strong><br><input id="me_nat" placeholder="IT / DE / ES / FR / TR ..."></label></div>
+          <div><label><strong>University</strong><br><input id="me_uni" placeholder="Your university"></label></div>
+        </div>
+        <div class="row">
+          <div><label><strong>Arrival month</strong><br><input id="me_arrival" placeholder="Jan / Feb / ..."></label></div>
+          <div><label><strong>Budget (€)</strong><br><input id="me_budget" type="number" min="0" step="10" placeholder="450"></label></div>
+        </div>
+        <div><label><strong>Bio</strong><br><textarea id="me_bio" rows="4" placeholder="Short intro, interests, languages..."></textarea></label></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn primary" id="meSave">Save profile</button>
+          <a class="btn" href="#/profiles">Go to Profiles</a>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="route-roadmap" class="route">
+    <section class="wrap" style="padding-top:28px">
+      <h1 style="border-left:10px solid var(--accent);padding-left:12px">Roadmap</h1>
+      <div class="grid">
+        <div class="card">
+          <span class="pill" style="background:var(--accent);color:#fff;border-color:#000">NOW</span>
+          <h2>Phase 1</h2>
+          <ul>
+            <li>Listings + multilingual UI</li>
+            <li>SoundCloud set</li>
+            <li>Profiles (private until sign-in)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill" style="background:var(--accent);color:#fff;border-color:#000">NEXT</span>
+          <h2>Phase 2</h2>
+          <ul>
+            <li>Roombeat Wallet (escrow)</li>
+            <li>Contracts & e-sign</li>
+            <li>Commissions & fees</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill" style="background:var(--accent);color:#fff;border-color:#000">LATER</span>
+          <h2>Phase 3</h2>
+          <ul>
+            <li>Online users & games</li>
+            <li>Events & ticketing</li>
+            <li>Roombeat Points</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Audio -->
+<iframe id="roombeatAudio" width="0" height="0" frameborder="no" allow="autoplay"
+  src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fuser-202286394-991268468%2Fmishka-071125&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false"></iframe>
+<button id="audioBtn" class="btn primary" style="position:fixed;right:16px;bottom:16px;z-index:60">Play set (37:02)</button>
+
+<!-- Auth Modal -->
+<div id="authModal" class="modal">
+  <div class="box">
+    <h2>Sign In</h2>
+    <p class="muted">Choose a sign-in method.</p>
+    <div class="oauth">
+      <button id="appleBtn" class="btn"><span class="icon icon-apple"></span> Continue with Apple</button>
+      <button id="googleBtn" class="btn"><span class="icon icon-google"></span> Continue with Google</button>
+    </div>
+    <div style="margin:10px 0;text-align:center;color:#5A5A5A">or</div>
+    <div class="row">
+      <div><label><strong>Email</strong><br><input id="authEmail" placeholder="you@example.com"></label></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button id="sendMagic" class="btn primary">Send Magic Link</button>
+      <button id="closeAuth" class="btn">Close</button>
+    </div>
+    <div id="authStatus" class="muted" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+  <div class="box">
+    <h2>Supabase Settings</h2>
+    <div class="row">
+      <div><label><strong>SUPABASE_URL</strong><br><input id="sbUrl" placeholder="https://xxxx.supabase.co"></label></div>
+      <div><label><strong>SUPABASE_ANON</strong><br><textarea id="sbAnon" rows="3" placeholder="eyJhbGciOi..."></textarea></label></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button id="saveSettings" class="btn primary">Save & Reload</button>
+      <button id="closeSettings" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:22px 0">
+  <div>© <span id="year"></span> Roombeat</div>
+  <div style="font-weight:900">ROOMS • COMMUNITY • KADIKOY</div>
+  <div><button id="openAuth" class="btn">Auth</button> <button id="openSettings" class="btn">Settings</button></div>
+</div></footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const routes = {"#/":"route-home","#":"route-home","": "route-home","#/profiles":"route-profiles","#/me":"route-me","#/roadmap":"route-roadmap"};
+  function renderRoute(){ const key = location.hash.split('?')[0]; const id = routes[key] || "route-home"; document.querySelectorAll('.route').forEach(el=>el.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+  window.addEventListener('hashchange', renderRoute); renderRoute();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // WhatsApp
+  function decorateWA(anchor){
+    if (!anchor) return;
+    const msg = "Hi Roombeat! Arrival: [DD/MM], Stay: [X months], Budget: [EUR], Private room/couple? [Y/N]";
+    anchor.href = "https://wa.me/34655274054?text=" + encodeURIComponent(msg);
+  }
+  decorateWA(document.getElementById('waCta')); decorateWA(document.getElementById('waExplore'));
+
+  // Audio
+  const widget = SC.Widget(document.getElementById('roombeatAudio')); let didSeek=false;
+  widget.bind(SC.Widget.Events.READY, function(){ widget.setVolume(22); widget.bind(SC.Widget.Events.PLAY_PROGRESS, function(){ if(!didSeek){ widget.seekTo(2222000); didSeek=true; } }); });
+  document.getElementById('audioBtn').addEventListener('click', function(){ widget.seekTo(2222000); widget.play(); this.textContent='Pause set'; });
+
+  // Settings modal openers
+  const settingsBtn = document.getElementById('settingsBtn') || document.getElementById('openSettings');
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettings = document.getElementById('closeSettings');
+  const saveSettings = document.getElementById('saveSettings');
+  const sbUrl = document.getElementById('sbUrl'); const sbAnon = document.getElementById('sbAnon');
+  const AUTH_KEY = 'rb_sb';
+  const saved = JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+  sbUrl.value = saved.url || ''; sbAnon.value = saved.anon || '';
+  settingsBtn.addEventListener('click', ()=> settingsModal.style.display='flex');
+  closeSettings.addEventListener('click', ()=> settingsModal.style.display='none');
+  saveSettings.addEventListener('click', ()=>{ localStorage.setItem(AUTH_KEY, JSON.stringify({url: sbUrl.value.trim(), anon: sbAnon.value.trim()})); location.reload(); });
+
+  // Auth modal
+  const authBtn = document.getElementById('authBtn') || document.getElementById('openAuth');
+  const authModal = document.getElementById('authModal');
+  const closeAuth = document.getElementById('closeAuth');
+  const sendMagic = document.getElementById('sendMagic');
+  const authEmail = document.getElementById('authEmail');
+  const authStatus = document.getElementById('authStatus');
+  authBtn.addEventListener('click', ()=> authModal.style.display='flex');
+  closeAuth.addEventListener('click', ()=> authModal.style.display='none');
+
+  // Supabase client
+  let supa = null;
+  if (window.supabase){
+    const cfg = JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+    if (cfg.url && cfg.anon){ supa = window.supabase.createClient(cfg.url, cfg.anon); }
+  }
+
+  async function refreshSession(){
+    if (!supa){ authStatus.textContent = 'Add Supabase keys in Settings.'; return; }
+    const { data: { session } } = await supa.auth.getSession();
+    authStatus.textContent = session && session.user ? ('Signed in as ' + session.user.email) : 'Not signed in';
+  }
+  await refreshSession();
+
+  // Magic link fallback
+  if (supa){
+    sendMagic.addEventListener('click', async ()=>{
+      const email = authEmail.value.trim(); if(!email) return alert('Email required');
+      const { error } = await supa.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+      authStatus.textContent = error ? ('Error: ' + error.message) : 'Magic link sent. Check your inbox.';
+    });
+  } else {
+    sendMagic.addEventListener('click', ()=> alert('Add Supabase keys in Settings first.'));
+  }
+
+  // OAuth: Apple & Google
+  function oauth(provider){
+    if (!supa) return alert('Add Supabase keys in Settings first.');
+    supa.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.href } });
+  }
+  document.getElementById('appleBtn').addEventListener('click', ()=> oauth('apple'));
+  document.getElementById('googleBtn').addEventListener('click', ()=> oauth('google'));
+});
+</script>
+</body>
+</html>
